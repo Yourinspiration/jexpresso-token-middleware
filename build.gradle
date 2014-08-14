@@ -1,0 +1,79 @@
+apply plugin: 'groovy'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+group = 'de.yourinspiration'
+version = '0.0.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.3.4'
+    compile 'de.yourinspiration:jexpresso:1.3.1'
+    testCompile 'org.spockframework:spock-maven:0.7-groovy-2.0'
+    testCompile 'cglib:cglib-nodep:3.1'
+    testCompile 'org.objenesis:objenesis:2.1'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from 'build/docs/javadoc'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+artifacts {
+    archives jar
+
+    archives javadocJar
+    archives sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: sonatypeUsername, password: sonatypePassword)
+            }
+
+            pom.project {
+                name 'jexpresso-token-middleware'
+                packaging 'jar'
+                description 'A middleware for JExpresso to authenticate request for query tokens'
+                url 'https://github.com/Yourinspiration/jexpresso-token-middleware'
+
+                scm {
+                    url 'scm:git@github.com:Yourinspiration/jexpresso-token-middleware.git'
+                    connection 'scm:git@github.com:Yourinspiration/jexpresso-token-middleware.git'
+                    developerConnection 'scm:git@github.com:Yourinspiration/jexpresso-token-middleware.git'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'marcelhaerle'
+                        name 'Marcel Härle'
+                    }
+                }
+            }
+        }
+    }
+}
